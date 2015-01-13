@@ -4,12 +4,12 @@
     // declatarions
 %}
 
-%s IN_FUNCTION FUNCTION_HEADER FUNCTION_NAME RETURN_TYPE
+%s IN_FUNCTION DATA_TYPE NAME
 
 word [a-zA-Z]+
 digit [0-9]+
 dataType "int"|"char"|"void"
-name [a-zA-Z0-9]+
+name [a-zA-Z0-9]*
 vectorDec "["{digit}*"]"
 varDec {dataType}" "+{name}{vectorDec}*
 args {varDec}","" "*
@@ -20,34 +20,37 @@ function {dataType}" "+{name}" "*"("{params}*")"
 %%
 
 <INITIAL>{function} {
-                        printf("%s\n", yytext);
+    printf("%s\n", yytext);
 
-                        BEGIN(FUNCTION_HEADER); 
-                        yy_scan_string(yytext);
-                        yylex();
+    char *copyStr = (char *)calloc(strlen(yytext) + 1, sizeof(char));
 
-                        stdin = inputFile;
-                    }
+    strcpy(copyStr, yytext);
 
-<FUNCTION_HEADER>{dataType}" "+{name} {
-            BEGIN(RETURN_TYPE);
-            
-            yy_scan_string(yytext);
-            yylex();
-        }
+    int i;
+    for (i = strlen(copyStr); i >= 0; i--) {
+        unput(copyStr[i]);
+    }
 
- 
-<RETURN_TYPE>{dataType} {
-            printf("\ttipul intors: %s\n", yytext); 
-            
-            BEGIN(FUNCTION_NAME);
-        }
+    BEGIN(DATA_TYPE);
+}
 
-<FUNCTION_NAME>{name} {
-            printf("\tnume: %s\n", yytext);
+<DATA_TYPE>{dataType} {
+    printf("\ttip intors: %s\n", yytext);
+    BEGIN(NAME);
+}
 
-            BEGIN(IN_FUNCTION);
-        }
+<NAME>{name} {
+    printf("\tnume: %s\n", yytext);
+    
+    BEGIN(INITIAL);
+}
+
+<NAME>"(" {
+    printf("ok");
+    BEGIN(INITIAL);
+}
+
+
 
 
 . {}
